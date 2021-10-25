@@ -43,9 +43,9 @@ impl Default for PluginModel {
         Self {
             size: 0.4,
             feedback: 0.6,
-            dry_vol: 0.0,
-            er_vol: -8.0,
-            wet_vol: -16.0,
+            dry_vol: 1.0,
+            er_vol: 0.4,
+            wet_vol: 0.5,
         }
     }
 }
@@ -75,12 +75,15 @@ impl Plugin for FdnPlugin {
             sample_count: 0,
         };
         let mut early_refl = EarlyReflections::new(sample_rate);
+        let mut rev_tail = ReverbTail::new(sample_rate);
         early_refl.set_delay_fract(model.size);
+        rev_tail.update_size(model.size);
+        rev_tail.update_feedback(model.feedback);
 
         Self {
             audio_context,
             early_refl,
-            rev_tail: ReverbTail::new(sample_rate),
+            rev_tail,
             fanout: Spread::default(),
             fanin: Spread::default(),
         }
