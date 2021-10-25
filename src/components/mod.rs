@@ -2,6 +2,7 @@ use audio::Sample;
 
 pub(crate) mod allpass;
 pub(crate) mod delay;
+pub(crate) mod feedback;
 pub(crate) mod hadamard;
 pub(crate) mod parallel;
 pub(crate) mod seq;
