@@ -182,18 +182,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fdn"
-version = "0.1.0"
-dependencies = [
- "audio",
- "baseplug",
- "baseview",
- "nalgebra",
- "num-traits",
- "serde",
-]
-
-[[package]]
 name = "foreign-types"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -442,6 +430,18 @@ checksum = "336b10da19a12ad094b59d870ebde26a45402e5b470add4b5fd03c5048a32127"
 dependencies = [
  "itoa",
  "ryu",
+ "serde",
+]
+
+[[package]]
+name = "silkverb"
+version = "0.1.0"
+dependencies = [
+ "audio",
+ "baseplug",
+ "baseview",
+ "nalgebra",
+ "num-traits",
  "serde",
 ]
 

@@ -1,5 +1,6 @@
 [package]
-name = "fdn"
+name = "silkverb"
+description = "A FDN-based reverb audio plugin"
 version = "0.1.0"
 edition = "2018"
 
