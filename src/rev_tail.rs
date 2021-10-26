@@ -1,11 +1,9 @@
-use std::iter::Rev;
-
 use audio::Sample;
 use nalgebra::ClosedMul;
 
 use crate::components::{
-    allpass::Allpass, feedback::Feedback, parallel::Parallel, seq::Sequence, Process,
-    SingleChannelProcess,
+    allpass::Allpass, chorus::Chorus, feedback::Feedback, parallel::Parallel, seq::Sequence,
+    Process, SingleChannelProcess,
 };
 
 struct Gain<T> {
@@ -26,6 +24,7 @@ impl<T: Sample + ClosedMul> SingleChannelProcess for Gain<T> {
 
 pub(crate) struct ReverbTail<const N: usize> {
     tank: Feedback<Sequence<f32, Allpass<N>, Allpass<N>>, Parallel<Gain<f32>, N>, N>,
+    modulation: Parallel<Chorus<f32>, N>,
 }
 
 impl<const N: usize> ReverbTail<N> {
@@ -38,6 +37,11 @@ impl<const N: usize> ReverbTail<N> {
                 ),
                 Parallel::new(|_| Gain { gain: 0.4 }),
             ),
+            modulation: Parallel::new(|i| {
+                let mut c = Chorus::new((samplerate * 0.5) as _);
+                c.set_pos(i as f32 / N as f32);
+                c
+            }),
         }
     }
 
@@ -49,6 +53,10 @@ impl<const N: usize> ReverbTail<N> {
         let seq = self.tank.forward_mut();
         seq.pa.update(size);
         seq.pb.update(size);
+    }
+
+    pub fn update_chorus(&mut self, update: impl FnMut(&mut Chorus<f32>)) {
+        self.modulation.update(update);
     }
 }
 
@@ -63,6 +71,8 @@ impl<const N: usize> Process for ReverbTail<N> {
         input_frame: &[Self::T],
         output_frame: &mut [Self::T],
     ) {
-        self.tank.process(ctx, input_frame, output_frame)
+        let mut tmp_frame = [0.0; N];
+        self.tank.process(ctx, input_frame, &mut tmp_frame);
+        self.modulation.process(ctx, &tmp_frame, output_frame);
     }
 }

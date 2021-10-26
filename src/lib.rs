@@ -34,6 +34,14 @@ baseplug::model! {
         #[model (min = -90.0, max = 6.0, gradient="Power(0.15)")]
         #[parameter (name = "Wet", unit="Decibels")]
         wet_vol: f32,
+
+        #[model (min = 0.0, max = 1.0)]
+        #[parameter (name = "Modulation Amount")]
+        mod_amt: f32,
+
+        #[model (min = 0.0, max = 10.0)]
+        #[parameter (name = "Modulation Freq.")]
+        mod_freq: f32,
     }
 }
 
@@ -45,6 +53,8 @@ impl Default for PluginModel {
             dry_vol: 1.0,
             er_vol: 0.4,
             wet_vol: 0.5,
+            mod_amt: 0.1,
+            mod_freq: 0.1,
         }
     }
 }
@@ -103,6 +113,15 @@ impl Plugin for FdnPlugin {
             self.early_refl.set_delay_fract(model.size[i]);
             self.rev_tail.update_size(model.size[i]);
             self.rev_tail.update_feedback(model.feedback[i]);
+            self.rev_tail.update_chorus({
+                use components::chorus::Hz;
+                let amp = model.mod_amt[i];
+                let f = Hz::from_frequency(model.mod_freq[i]);
+                move |c| {
+                    c.set_amplitude(amp);
+                    c.set_frequency(f);
+                }
+            });
 
             self.fanout
                 .process(&self.audio_context, &inputs, &mut rev_input);

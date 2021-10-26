@@ -5,7 +5,7 @@ use std::{
 };
 
 use audio::Sample;
-use num_traits::{Float, One};
+use num_traits::{Float, FromPrimitive, One};
 
 use super::SingleChannelProcess;
 
@@ -65,10 +65,10 @@ impl<T: Sample + One> Delay<T> {
     }
 }
 
-impl<T: Sample + Float + From<u16>> Delay<T> {
+impl<T: Sample + Float + FromPrimitive> Delay<T> {
     pub fn interpolate(&self, f: T) -> T {
         let len = self.delay.len();
-        let v: T = <T as From<u16>>::from(len as _) * f;
+        let v: T = T::from_usize(len).unwrap() * f;
         let offset = v.floor().to_usize().unwrap() % len;
         let fract = v.fract();
 
@@ -79,7 +79,7 @@ impl<T: Sample + Float + From<u16>> Delay<T> {
     }
 }
 
-impl<T: Sample + Float + From<u16>> SingleChannelProcess for Delay<T> {
+impl<T: Sample + Float + FromPrimitive> SingleChannelProcess for Delay<T> {
     type T = T;
 
     fn process_single_channel(&mut self, ctx: &super::AudioContext, value: Self::T) -> Self::T {

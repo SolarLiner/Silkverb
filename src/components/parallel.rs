@@ -7,7 +7,7 @@ pub struct Parallel<P, const N: usize> {
 }
 
 impl<P, const N: usize> Parallel<P, N> {
-    pub fn new(mut init: impl FnMut(usize) -> P) -> Self {
+    pub fn new(init: impl FnMut(usize) -> P) -> Self {
         Self {
             data: (0..N).map(init).collect(),
         }
