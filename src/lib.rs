@@ -7,7 +7,7 @@ mod rev_tail;
 
 use crate::components::AudioContext;
 use baseplug::{Plugin, ProcessContext};
-use components::spread::Spread;
+use components::{chorus::Hz, spread::Spread};
 use early_refl::EarlyReflections;
 use rev_tail::ReverbTail;
 use serde::{Deserialize, Serialize};
@@ -88,6 +88,11 @@ impl Plugin for FdnPlugin {
         early_refl.set_delay_fract(model.size);
         rev_tail.update_size(model.size);
         rev_tail.update_feedback(model.feedback);
+        rev_tail.update_chorus(|c| {
+            c.set_amplitude(0.3);
+            c.set_frequency(Hz::from_frequency(model.mod_freq));
+        });
+        rev_tail.update_chorus_drywet(model.mod_amt);
 
         Self {
             audio_context,
@@ -114,14 +119,12 @@ impl Plugin for FdnPlugin {
             self.rev_tail.update_size(model.size[i]);
             self.rev_tail.update_feedback(model.feedback[i]);
             self.rev_tail.update_chorus({
-                use components::chorus::Hz;
-                let amp = model.mod_amt[i];
                 let f = Hz::from_frequency(model.mod_freq[i]);
                 move |c| {
-                    c.set_amplitude(amp);
                     c.set_frequency(f);
                 }
             });
+            self.rev_tail.update_chorus_drywet(model.mod_amt[i]);
 
             self.fanout
                 .process(&self.audio_context, &inputs, &mut rev_input);

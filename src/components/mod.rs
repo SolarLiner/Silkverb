@@ -1,10 +1,11 @@
 use std::time::Duration;
 
 use audio::Sample;
-use num_traits::ToPrimitive;
+
 
 pub(crate) mod allpass;
 pub mod chorus;
+pub mod drywet;
 pub(crate) mod delay;
 pub(crate) mod feedback;
 pub(crate) mod hadamard;
@@ -30,7 +31,19 @@ mod ext {
 
         fn as_seconds<T: Float + FromPrimitive>(&self) -> T {
             T::from_u64(self.as_secs()).unwrap()
-                + T::from_u32(self.subsec_nanos()).unwrap() / T::one().powi(9)
+                + T::from_u32(self.subsec_nanos()).unwrap() / T::from_u64(1_000_000_000).unwrap()
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use std::time::Duration;
+
+        #[test]
+        fn test_as_seconds() {
+            let dur = Duration::from_secs_f64(1.1);
+            assert_eq!(1.1, dur.as_seconds::<f32>());
         }
     }
 }

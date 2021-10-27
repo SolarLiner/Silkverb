@@ -1,9 +1,8 @@
-use std::ffi::FromBytesWithNulError;
-
 use audio::Sample;
 use num_traits::{Float, FloatConst, FromPrimitive};
+use std::fmt::Debug;
 
-use super::{delay::Delay, ext::DurationFloatExt, parallel::Parallel, SingleChannelProcess};
+use super::{delay::Delay, ext::DurationFloatExt, SingleChannelProcess};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Hz<T>(T);
@@ -55,7 +54,7 @@ impl<T> Chorus<T> {
     }
 }
 
-impl<T: Sample + Float + FromPrimitive> Chorus<T> {
+impl<T: Debug + Sample + Float + FromPrimitive> Chorus<T> {
     pub fn new(max_delay: usize) -> Self {
         Self {
             amplitude: T::zero(),
@@ -66,17 +65,17 @@ impl<T: Sample + Float + FromPrimitive> Chorus<T> {
     }
 
     fn tick(&mut self, ctx: &super::AudioContext) {
-        self.pos = self.pos + ctx.tick_length().as_seconds()
+        self.pos = self.pos + ctx.tick_length().as_seconds::<T>() * self.freq.to_freq();
     }
 }
 
-impl<T: Sample + Float + FloatConst + FromPrimitive> SingleChannelProcess for Chorus<T> {
+impl<T: Debug + Sample + Float + FloatConst + FromPrimitive> SingleChannelProcess for Chorus<T> {
     type T = T;
 
     fn process_single_channel(&mut self, ctx: &super::AudioContext, value: Self::T) -> Self::T {
         let two = T::one().add(T::one());
         let half = two.recip();
-        self.delay.pos = self.freq.phase(self.pos).mul(T::TAU()).sin() / two + half;
+        self.delay.pos = self.pos.fract().mul(T::TAU()).sin() * self.amplitude / two + half;
         self.tick(ctx);
         self.delay.process_single_channel(ctx, value)
     }
