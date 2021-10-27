@@ -1,4 +1,7 @@
-use crate::{components::{Process, allpass::Allpass}, seq, seqdef};
+use crate::{
+    components::{allpass::Allpass, Process},
+    seq, seqdef,
+};
 
 pub struct EarlyReflections<const N: usize> {
     delays: seq!(f32, Allpass<N>; Allpass<N>; Allpass<N>; Allpass<N>),
@@ -6,7 +9,7 @@ pub struct EarlyReflections<const N: usize> {
 
 impl<const N: usize> EarlyReflections<N> {
     pub fn new(sample_rate: f32) -> Self {
-        let delays = seqdef!(Allpass::new((sample_rate * 2.0) as _); Allpass::new((sample_rate * 2.0) as _); Allpass::new((sample_rate * 2.0) as _); Allpass::new((sample_rate * 2.0) as _));
+        let delays = seqdef!(Allpass::new((sample_rate * 0.1) as _); Allpass::new((sample_rate * 0.25) as _); Allpass::new((sample_rate * 0.89) as _); Allpass::new((sample_rate * 1.4) as _));
         Self { delays }
     }
 
@@ -24,7 +27,12 @@ impl<const N: usize> Process for EarlyReflections<N> {
     const NOUT: usize = N;
 
     #[inline(always)]
-    fn process(&mut self, ctx: &crate::components::AudioContext, input_frame: &[Self::T], output_frame: &mut [Self::T]) {
+    fn process(
+        &mut self,
+        ctx: &crate::components::AudioContext,
+        input_frame: &[Self::T],
+        output_frame: &mut [Self::T],
+    ) {
         self.delays.process(ctx, input_frame, output_frame)
     }
 }
