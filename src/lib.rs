@@ -39,7 +39,7 @@ baseplug::model! {
         #[parameter (name = "Modulation Amount")]
         mod_amt: f32,
 
-        #[model (min = 0.0, max = 10.0)]
+        #[model (min = 0.0, max = 1.0)]
         #[parameter (name = "Modulation Freq.")]
         mod_freq: f32,
     }
@@ -89,7 +89,7 @@ impl Plugin for FdnPlugin {
         rev_tail.update_size(model.size);
         rev_tail.update_feedback(model.feedback);
         rev_tail.update_chorus(|c| {
-            c.set_amplitude(0.3);
+            c.set_amplitude(0.1);
             c.set_frequency(Hz::from_frequency(model.mod_freq));
         });
         rev_tail.update_chorus_drywet(model.mod_amt);
